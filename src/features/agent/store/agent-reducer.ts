@@ -13,10 +13,7 @@ export const initialAgentState: AgentState = {
   artifacts: [],
 };
 
-export function agentReducer(
-  state: AgentState,
-  event: AgentEvent
-): AgentState {
+export function agentReducer(state: AgentState, event: AgentEvent): AgentState {
   switch (event.type) {
     case "run.started":
       return {
@@ -28,11 +25,9 @@ export function agentReducer(
       };
 
     case "message.delta": {
-      const message =
-        state.messages.find(
-          (item) =>
-            item.id === event.data.messageId
-        );
+      const message = state.messages.find(
+        (item) => item.id === event.data.messageId,
+      );
 
       if (!message) {
         return {
@@ -54,17 +49,14 @@ export function agentReducer(
       return {
         ...state,
 
-        messages: state.messages.map(
-          (item) =>
-            item.id === event.data.messageId
-              ? {
-                  ...item,
+        messages: state.messages.map((item) =>
+          item.id === event.data.messageId
+            ? {
+                ...item,
 
-                  content:
-                    item.content +
-                    event.data.delta,
-                }
-              : item
+                content: item.content + event.data.delta,
+              }
+            : item,
         ),
       };
     }
@@ -92,17 +84,16 @@ export function agentReducer(
       return {
         ...state,
 
-        toolCalls: state.toolCalls.map(
-          (tool) =>
-            tool.id === event.data.toolCallId
-              ? {
-                  ...tool,
+        toolCalls: state.toolCalls.map((tool) =>
+          tool.id === event.data.toolCallId
+            ? {
+                ...tool,
 
-                  status: "completed",
+                status: "completed",
 
-                  output: event.data.output,
-                }
-              : tool
+                output: event.data.output,
+              }
+            : tool,
         ),
       };
 
@@ -139,6 +130,37 @@ export function agentReducer(
         status: "failed",
       };
 
+    case "message.delta": {
+      const message = state.messages.find(
+        (item) => item.id === event.data.messageId,
+      );
+
+      if (!message) {
+        return {
+          ...state,
+          messages: [
+            ...state.messages,
+            {
+              id: event.data.messageId,
+              role: "assistant",
+              content: event.data.delta,
+            },
+          ],
+        };
+      }
+
+      return {
+        ...state,
+        messages: state.messages.map((item) =>
+          item.id === event.data.messageId
+            ? {
+                ...item,
+                content: item.content + event.data.delta,
+              }
+            : item,
+        ),
+      };
+    }
     default:
       return state;
   }
