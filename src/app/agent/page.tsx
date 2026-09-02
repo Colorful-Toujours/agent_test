@@ -1,6 +1,7 @@
 "use client";
 
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
+import { mockAgent } from "@/src/app/agent/mock/mock-agent";
 
 import {
   agentReducer,
@@ -8,6 +9,7 @@ import {
 } from "@/src/features/agent/store/agent-reducer";
 const assistantMessageId = "assistant-demo";
 export default function AgentPage() {
+  const [input, setInput] = useState("");
   const [state, dispatch] = useReducer(agentReducer, initialAgentState);
 
   function handleStart() {
@@ -64,108 +66,17 @@ export default function AgentPage() {
       },
     });
   }
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
   async function handleRunAgent() {
-    const runId = crypto.randomUUID();
-    const messageId = crypto.randomUUID();
-    const toolCallId = crypto.randomUUID();
+    // for await (const event of mockAgent()) {
+    //   dispatch(event);
+    // }
+    const message = input.trim();
 
-    dispatch({
-      type: "run.started",
-      runId,
-    });
+    if (!message) return;
 
-    await sleep(500);
-
-    dispatch({
-      type: "message.delta",
-      runId,
-      data: {
-        messageId,
-        delta: "我",
-      },
-    });
-
-    await sleep(300);
-
-    dispatch({
-      type: "message.delta",
-      runId,
-      data: {
-        messageId,
-        delta: "正在",
-      },
-    });
-
-    await sleep(300);
-
-    dispatch({
-      type: "message.delta",
-      runId,
-      data: {
-        messageId,
-        delta: "分析",
-      },
-    });
-
-    await sleep(300);
-
-    dispatch({
-      type: "message.delta",
-      runId,
-      data: {
-        messageId,
-        delta: "你的图片。",
-      },
-    });
-
-    await sleep(500);
-
-    dispatch({
-      type: "tool.started",
-      runId,
-      data: {
-        toolCallId,
-        toolName: "inspect_image",
-        input: {
-          image: "demo.png",
-        },
-      },
-    });
-
-    await sleep(1500);
-
-    dispatch({
-      type: "tool.completed",
-      runId,
-      data: {
-        toolCallId,
-        output: {
-          width: 1440,
-          height: 900,
-          objects: 3,
-        },
-      },
-    });
-
-    await sleep(500);
-
-    dispatch({
-      type: "message.delta",
-      runId,
-      data: {
-        messageId,
-        delta: "\n分析完成，共发现 3 个目标。",
-      },
-    });
-
-    await sleep(500);
-
-    dispatch({
-      type: "run.completed",
-      runId,
-    });
+    for await (const event of mockAgent(message)) {
+      dispatch(event);
+    }
   }
   return (
     <main className="p-10">
@@ -252,6 +163,14 @@ export default function AgentPage() {
             ))
           )}
         </div>
+        <div className="font-medium">输入任务：</div>
+
+        <textarea
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          placeholder="例如：分析这张图片"
+          className="min-h-24 w-full rounded-lg border p-3 outline-none"
+        />
       </div>
     </main>
   );
