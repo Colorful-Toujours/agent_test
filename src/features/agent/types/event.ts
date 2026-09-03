@@ -5,7 +5,8 @@ export type AgentEvent =
   | ToolCompletedEvent
   | ArtifactCreatedEvent
   | RunCompletedEvent
-  | RunFailedEvent;
+  | RunFailedEvent
+  | MessageCreatedEvent;
 
 export interface RunStartedEvent {
   type: "run.started";
@@ -50,11 +51,7 @@ export interface ArtifactCreatedEvent {
   data: {
     artifactId: string;
 
-    artifactType:
-      | "code"
-      | "json"
-      | "image"
-      | "text";
+    artifactType: "code" | "json" | "image" | "text";
 
     title: string;
 
@@ -73,5 +70,15 @@ export interface RunFailedEvent {
 
   data: {
     message: string;
+  };
+}
+export interface MessageCreatedEvent {
+  type: "message.created";
+  runId: string;
+
+  data: {
+    messageId: string;
+    role: "user" | "assistant";
+    content: string;
   };
 }

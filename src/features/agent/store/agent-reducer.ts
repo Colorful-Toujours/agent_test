@@ -130,37 +130,18 @@ export function agentReducer(state: AgentState, event: AgentEvent): AgentState {
         status: "failed",
       };
 
-    case "message.delta": {
-      const message = state.messages.find(
-        (item) => item.id === event.data.messageId,
-      );
-
-      if (!message) {
-        return {
-          ...state,
-          messages: [
-            ...state.messages,
-            {
-              id: event.data.messageId,
-              role: "assistant",
-              content: event.data.delta,
-            },
-          ],
-        };
-      }
-
+    case "message.created":
       return {
         ...state,
-        messages: state.messages.map((item) =>
-          item.id === event.data.messageId
-            ? {
-                ...item,
-                content: item.content + event.data.delta,
-              }
-            : item,
-        ),
+        messages: [
+          ...state.messages,
+          {
+            id: event.data.messageId,
+            role: event.data.role,
+            content: event.data.content,
+          },
+        ],
       };
-    }
     default:
       return state;
   }

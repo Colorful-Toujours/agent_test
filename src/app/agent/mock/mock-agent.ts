@@ -4,8 +4,8 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function* mockAgent(message: string): AsyncGenerator<AgentEvent> {
   const runId = crypto.randomUUID();
-  const messageId = crypto.randomUUID();
-  const toolCallId = crypto.randomUUID();
+
+  const assistantMessageId = crypto.randomUUID();
 
   yield {
     type: "run.started",
@@ -13,60 +13,44 @@ export async function* mockAgent(message: string): AsyncGenerator<AgentEvent> {
   };
 
   await sleep(500);
+  yield {
+    type: "message.created",
+    runId,
 
+    data: {
+      messageId: crypto.randomUUID(),
+
+      role: "user",
+
+      content: message,
+    },
+  };
   yield {
     type: "message.delta",
     runId,
+
     data: {
-      messageId,
-      delta: "我",
+      messageId: assistantMessageId,
+
+      delta: "我先理解一下你的任务。",
     },
   };
 
-  await sleep(300);
+  await sleep(600);
 
-  yield {
-    type: "message.delta",
-    runId,
-    data: {
-      messageId,
-      delta: "正在",
-    },
-  };
-
-  await sleep(300);
-
-  yield {
-    type: "message.delta",
-    runId,
-    data: {
-      messageId,
-      delta: "分析",
-    },
-  };
-
-  await sleep(300);
-
-  yield {
-    type: "message.delta",
-    runId,
-    data: {
-      messageId,
-      delta: "你的图片。",
-    },
-  };
-
-  await sleep(500);
+  const toolCallId = crypto.randomUUID();
 
   yield {
     type: "tool.started",
     runId,
+
     data: {
       toolCallId,
-      toolName: "inspect_image",
+
+      toolName: "inspect_workspace",
+
       input: {
-        // image: "demo.png",
-        prompt: message,
+        query: message,
       },
     },
   };
@@ -76,12 +60,14 @@ export async function* mockAgent(message: string): AsyncGenerator<AgentEvent> {
   yield {
     type: "tool.completed",
     runId,
+
     data: {
       toolCallId,
+
       output: {
-        width: 1440,
-        height: 900,
-        objects: 3,
+        files: 1,
+
+        type: "image",
       },
     },
   };
@@ -91,10 +77,39 @@ export async function* mockAgent(message: string): AsyncGenerator<AgentEvent> {
   yield {
     type: "message.delta",
     runId,
+
     data: {
-      messageId,
-      //   delta: "\n分析完成，共发现 3 个目标。",
-      delta: `\n你的任务是：${message}`,
+      messageId: assistantMessageId,
+
+      delta: "\n\nWorkspace 分析完成，我发现当前任务可以生成一个结构化结果。",
+    },
+  };
+
+  await sleep(700);
+
+  yield {
+    type: "artifact.created",
+    runId,
+
+    data: {
+      artifactId: crypto.randomUUID(),
+
+      artifactType: "json",
+
+      title: "analysis.json",
+
+      content: {
+        task: message,
+
+        status: "success",
+
+        result: [
+          {
+            label: "example",
+            confidence: 0.96,
+          },
+        ],
+      },
     },
   };
 
